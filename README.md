@@ -11,4 +11,4 @@ You can get help by just starting the compiled binary with no arguments:
 <img src="https://github.com/ProIntegritate/Snooze/blob/main/x2.jpg?raw=true">
 
 Here is what it looks like when the timer is running.
-<img src="https://github.com/ProIntegritate/Snooze/blob/main/x.jpg?raw=true">
+<img src="https://github.com/ProIntegritate/Snooze/blob/main/x.gif?raw=true">
