@@ -24,10 +24,10 @@ Module Module1
             End Try
         End If
 
-        If strings.Left(sValue, 1) = "+" Then Return CDbl(sValue) ' Positive value, + operator is superflous here.
-        If strings.Left(sValue, 1) = "-" Then Return CDbl(sValue) ' Negative value
-        If strings.Left(sValue, 1) = "*" Then Return CDbl(0) ' Can't return this as value
-        If strings.Left(sValue, 1) = "/" Then Return CDbl(0) ' Can't return this as value
+        If Microsoft.VisualBasic.Left(sValue, 1) = "+" Then Return CDbl(sValue) ' Positive value, + operator is superflous here.
+        If Microsoft.VisualBasic.Left(sValue, 1) = "-" Then Return CDbl(sValue) ' Negative value
+        If Microsoft.VisualBasic.Left(sValue, 1) = "*" Then Return CDbl(0) ' Can't return this as value
+        If Microsoft.VisualBasic.Left(sValue, 1) = "/" Then Return CDbl(0) ' Can't return this as value
 
 
         Dim sVals() As String = "".Split(",") ' Init
@@ -167,15 +167,22 @@ Module Module1
 
         Console.Clear()
 
+        Dim dDoneDate As Date
+
         Dim bKeepRunning As Boolean = True
         While (bKeepRunning) ' Main loop
 
             If bHidden = False Then
                 Try
-                    Console.ForegroundColor = ConsoleColor.Cyan : Console.BackgroundColor = ConsoleColor.Black
-                    Console.Write("Timeleft: " & (dEndDate - Date.Now).ToString("G") & "  ")
-                    Console.ForegroundColor = ConsoleColor.Green : Console.BackgroundColor = ConsoleColor.Black
-                    Console.WriteLine(" UTC Time: " & Date.UtcNow.ToString("G"))
+                    Console.BackgroundColor = ConsoleColor.Black
+                    Console.ForegroundColor = ConsoleColor.Cyan
+                    Console.WriteLine("   Timeleft: " & (dEndDate - Date.Now).ToString("G") & " ")
+                    Console.ForegroundColor = ConsoleColor.Green
+                    Console.WriteLine("    Endtime: " & dEndDate.ToString("G") & " ")
+                    Console.ForegroundColor = ConsoleColor.Yellow
+                    Console.WriteLine(" LOCAL Time: " & Date.Now.ToString("G") & " ")
+                    Console.ForegroundColor = ConsoleColor.DarkYellow
+                    Console.WriteLine("   UTC Time: " & Date.UtcNow.ToString("G") & " ")
                 Catch ex As Exception
                 End Try
             End If
@@ -191,7 +198,9 @@ Module Module1
             ' Step back to previous line
             If bHidden = False Then
                 Try
-                    Console.CursorTop = Console.CursorTop - 1 ' Go back to prev line
+                    'Console.CursorTop = Console.CursorTop - 1 ' Go back to prev line
+                    Console.CursorTop = 0
+                    Console.CursorLeft = 0  ' Go back to prev line
                 Catch ex As Exception
                 End Try
             End If
@@ -209,7 +218,11 @@ Module Module1
         Console.BackgroundColor = cb
 
         ' Exit message
-        If bHidden = False And bTerm = False Then Console.WriteLine("Done!                                                                   ")
+
+        If bHidden = False And bTerm = False Then
+            Console.Clear()
+            Console.WriteLine("Done!")
+        End If
 
         If bBeep = True Then ' Do final beeps
             Console.Beep(1200, 50)
@@ -240,9 +253,8 @@ Module Module1
 
         If bHidden = False Then
             Console.CursorLeft = 0
-            Console.WriteLine("Aborted!                                                                 ")
-            Console.WriteLine("                                                                         ")
-            Console.CursorTop = Console.CursorTop - 1 ' Step back
+            Console.Clear()
+            Console.WriteLine("Aborted!")
         End If
         End
 
