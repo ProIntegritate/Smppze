@@ -1,10 +1,17 @@
+' Compile and start snooze.exe -h to get help
+
 Module Module1
 
     Public cf As ConsoleColor = Console.ForegroundColor
     Public cb As ConsoleColor = Console.BackgroundColor
     Public bTerm As Boolean = False        ' Signal to termi for main() loop
-    Public bBeep As Boolean = True        ' Do Beeps on start/stop/abort
+    Public bBeep As Boolean = True         ' Do Beeps on start/stop/abort
     Public bHidden As Boolean = False      ' No console output
+
+    Public bHideEndTime As Boolean = False
+    Public bHideLocalTime As Boolean = False
+    Public bHideUTCTime As Boolean = False
+
 
     Public Function fDoTheMath(ByVal sValue As String) As Double
 
@@ -60,26 +67,44 @@ Module Module1
     Sub ShowHelp()
 
         Console.ForegroundColor = ConsoleColor.Yellow
-        Console.WriteLine("Snooze, Written in 2022 by Glenn Larsson.")
+        Console.WriteLine("Snooze, Written in 2022-2023 by Glenn Larsson.")
         Console.ForegroundColor = ConsoleColor.Cyan
+        Console.WriteLine("")
         Console.WriteLine("Options: ")
         Console.ForegroundColor = ConsoleColor.Green
-        Console.WriteLine(" -h      = Show this help text")
-        Console.WriteLine(" -beep   = Make start/stop/abort beeps (Default: True)")
-        Console.WriteLine(" -ticks  = Make a ticking sound every second (Default: False)")
-        Console.WriteLine(" -hidden = Non verbose mode. No console output at all.")
+        Console.WriteLine(" -h                        = Show this help text")
+        Console.WriteLine(" -beep                     = Make start/stop/abort beeps (Default: True)")
+        Console.WriteLine(" -ticks                    = Make a ticking sound every second (Default: False)")
+        Console.WriteLine(" -hidden                   = Non verbose mode. No console output at all.")
         Console.ForegroundColor = ConsoleColor.Cyan
+        Console.WriteLine("")
+        Console.WriteLine("To hide specific things on screen:")
+        Console.ForegroundColor = ConsoleColor.Green
+        Console.WriteLine(" -he                       = This will hide the Endtime from being presented on screen.")
+        Console.WriteLine(" -hl                       = This will hide the Localtime from being presented on screen.")
+        Console.WriteLine(" -hu                       = This will hide the UTCTime from being presented on screen.")
+        Console.ForegroundColor = ConsoleColor.Cyan
+        Console.WriteLine("")
         Console.WriteLine("To set a timespan, simply do:")
         Console.ForegroundColor = ConsoleColor.Green
-        Console.WriteLine("> snooze.exe 10s     = this will pause for 10 seconds")
-        Console.WriteLine("> snooze.exe 5m      = this will pause for 5 minutes")
-        Console.WriteLine("> snooze.exe 3Y 6M   = this will pause for 3 years and 6 months")
+        Console.WriteLine("> snooze.exe 10s           = this will pause for 10 seconds.")
+        Console.WriteLine("> snooze.exe 5m            = this will pause for 5 minutes.")
+        Console.WriteLine("> snooze.exe 3Y 6M         = this will pause for 3 years and 6 months.")
         Console.ForegroundColor = ConsoleColor.Cyan
+        Console.WriteLine("")
+        Console.WriteLine("To set a specific end time, do:")
+        Console.ForegroundColor = ConsoleColor.Green
+        Console.WriteLine("> snooze.exe -u <endtime>  = <endtime> is an ISODATE, like 2023-12-31T23:59:59.")
+        Console.WriteLine("It also works with just a date/time operator:")
+        Console.WriteLine("> snooze.exe -u 2023-12-31 = This will wait until the last day of the year 2023.")
+        Console.WriteLine("> snooze.exe -u 23:59:59   = This will wait until the final second of the day.")
+        Console.ForegroundColor = ConsoleColor.Cyan
+        Console.WriteLine("")
         Console.WriteLine("Supported time units are s,m,h,D,W,M,Y (seconds, minutes,hours,Days,Weeks,Months,Years)")
         Console.WriteLine("You can also do math like: 30*2s -15s - that would add a wait period of 45 seconds. (30*2)-15")
         Console.ForegroundColor = ConsoleColor.White
 
-        End
+        Environment.Exit(0)
 
     End Sub
 
@@ -97,10 +122,13 @@ Module Module1
             ShowHelp()
         End If
 
+
+
         For n = 1 To UBound(sCmdArgs)
 
             Select Case (sCmdArgs(n))
-
+                Case "-u" ' Until localtime
+                    dEndDate = Date.Parse(sCmdArgs(n + 1))
                 Case "-h"
                     ShowHelp()
                 Case "-hidden"
@@ -109,12 +137,17 @@ Module Module1
                     bTicks = True
                 Case "-beep"
                     bBeep = False
+                Case "-he"
+                    bHideEndTime = True
+                Case "-hl"
+                    bHideLocalTime = True
+                Case "-hu"
+                    bHideUTCTime = True
                 Case Else
 
                     ' Seconds
                     If InStr(1, sCmdArgs(n), "s") Then
                         sCmdArgs(n) = sCmdArgs(n).Replace("s", "")
-                        'Console.WriteLine("Seconds to add: " & fDoTheMath(sCmdArgs(n)))
                         dEndDate = dEndDate.AddSeconds(fDoTheMath(sCmdArgs(n)))
                     End If
 
@@ -167,10 +200,9 @@ Module Module1
 
         Console.Clear()
 
-        Dim dDoneDate As Date
-
         Dim bKeepRunning As Boolean = True
         While (bKeepRunning) ' Main loop
+
 
             If bHidden = False Then
                 Try
@@ -178,16 +210,16 @@ Module Module1
                     Console.ForegroundColor = ConsoleColor.Cyan
                     Console.WriteLine("   Timeleft: " & (dEndDate - Date.Now).ToString("G") & " ")
                     Console.ForegroundColor = ConsoleColor.Green
-                    Console.WriteLine("    Endtime: " & dEndDate.ToString("G") & " ")
+                    If bHideEndTime = False Then Console.WriteLine("    Endtime: " & dEndDate.ToString("G") & " ")
                     Console.ForegroundColor = ConsoleColor.Yellow
-                    Console.WriteLine(" LOCAL Time: " & Date.Now.ToString("G") & " ")
+                    If bHideLocalTime = False Then Console.WriteLine(" LOCAL Time: " & Date.Now.ToString("G") & " ")
                     Console.ForegroundColor = ConsoleColor.DarkYellow
-                    Console.WriteLine("   UTC Time: " & Date.UtcNow.ToString("G") & " ")
+                    If bHideUTCTime = False Then Console.WriteLine("   UTC Time: " & Date.UtcNow.ToString("G") & " ")
                 Catch ex As Exception
                 End Try
             End If
 
-            Threading.Thread.Sleep(47) ' Sleep some
+            Threading.Thread.Sleep(47) ' Sleep some before updating screen again. Lowers CPU usage significantly.
 
             '  Beep once a second if ticks set to True
             If sLastSecond <> Now.Second.ToString Then ' Play beep if new second
@@ -217,8 +249,6 @@ Module Module1
         Console.ForegroundColor = cf ' Restore console colors
         Console.BackgroundColor = cb
 
-        ' Exit message
-
         If bHidden = False And bTerm = False Then
             Console.Clear()
             Console.WriteLine("Done!")
@@ -228,8 +258,6 @@ Module Module1
             Console.Beep(1200, 50)
             Console.Beep(1200, 50)
         End If
-
-        If bTerm = False Then End ' Term here if we're not terming in threadAbort()
 
     End Sub
 
@@ -256,7 +284,7 @@ Module Module1
             Console.Clear()
             Console.WriteLine("Aborted!")
         End If
-        End
+        Environment.Exit(0)
 
     End Sub
 
