@@ -259,6 +259,8 @@ Module Module1
             Console.Beep(1200, 50)
         End If
 
+        Environment.Exit(0) ' This really needs to be here.
+
     End Sub
 
     Sub threadAbort()
